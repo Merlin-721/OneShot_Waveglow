@@ -5,3 +5,5 @@
 log/
 models/
 data/
+input_wavs
+output_wavs
