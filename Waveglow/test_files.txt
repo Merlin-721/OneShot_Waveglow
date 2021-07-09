@@ -1,0 +1,10 @@
+/home/merlin/OneDrive/modules/individualProject/voiceChanger/Datasets/LJSpeech-1.1/wavs/LJ001-0001.wav
+/home/merlin/OneDrive/modules/individualProject/voiceChanger/Datasets/LJSpeech-1.1/wavs/LJ001-0002.wav
+/home/merlin/OneDrive/modules/individualProject/voiceChanger/Datasets/LJSpeech-1.1/wavs/LJ001-0003.wav
+/home/merlin/OneDrive/modules/individualProject/voiceChanger/Datasets/LJSpeech-1.1/wavs/LJ001-0004.wav
+/home/merlin/OneDrive/modules/individualProject/voiceChanger/Datasets/LJSpeech-1.1/wavs/LJ001-0005.wav
+/home/merlin/OneDrive/modules/individualProject/voiceChanger/Datasets/LJSpeech-1.1/wavs/LJ001-0006.wav
+/home/merlin/OneDrive/modules/individualProject/voiceChanger/Datasets/LJSpeech-1.1/wavs/LJ001-0007.wav
+/home/merlin/OneDrive/modules/individualProject/voiceChanger/Datasets/LJSpeech-1.1/wavs/LJ001-0008.wav
+/home/merlin/OneDrive/modules/individualProject/voiceChanger/Datasets/LJSpeech-1.1/wavs/LJ001-0009.wav
+/home/merlin/OneDrive/modules/individualProject/voiceChanger/Datasets/LJSpeech-1.1/wavs/LJ001-0010.wav

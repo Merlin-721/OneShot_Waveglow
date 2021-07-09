@@ -1,0 +1,12 @@
+{
+    "data_config": {
+        "training_files": "data/VCTK/22kHz_mels/train_files.txt",
+        "segment_length": 16000,
+        "sampling_rate": 22050,
+        "filter_length": 1024,
+        "hop_length": 256,
+        "win_length": 1024,
+        "mel_fmin": 0.0,
+        "mel_fmax": 8000.0
+    }
+}
