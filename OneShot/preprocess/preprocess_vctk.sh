@@ -1,4 +1,4 @@
-. vctk.config
+. OneShot/preprocess/vctk.config
 
 if [ $stage -le 0 ]; then
     printf "Making dataset with make_datasets_vctk.py\n"
