@@ -7,7 +7,7 @@ from collections import defaultdict
 import re
 import json
 import numpy as np
-from .mel2samp import load_wav_to_torch, Mel2Samp
+from Waveglow.mel2samp import load_wav_to_torch, Mel2Samp
 from itertools import product
 
 
@@ -91,19 +91,12 @@ def main(data_dir, speaker_info_path, output_dir, test_speakers, test_proportion
 
 
 if __name__ == '__main__':
-    data_dir = sys.argv[1] # "/home/merlin/OneDrive/modules/individualProject/voiceChanger/Datasets/DS_10283_2119/VCTK-Corpus/wav48" 
-    speaker_info_path = sys.argv[2] #"/home/merlin/OneDrive/modules/individualProject/voiceChanger/Datasets/DS_10283_2119/VCTK-Corpus/speaker-info.txt" 
-    output_dir = sys.argv[3] # "data/vctk/waveglow_form_mels/" 
-    test_speakers = int(sys.argv[4])#  20  
-    test_proportion = float(sys.argv[5]) # 0.1
-    waveglow_config = sys.argv[6] # waveglow_data_config.json
-
-    # data_dir = "/home/merlin/OneDrive/modules/individualProject/voiceChanger/Datasets/DS_10283_2119/VCTK-Corpus/wav48" 
-    # speaker_info_path = "/home/merlin/OneDrive/modules/individualProject/voiceChanger/Datasets/DS_10283_2119/VCTK-Corpus/speaker-info.txt" 
-    # output_dir = "data/vctk/waveglow_form_mels/" 
-    # test_speakers = 20  
-    # test_proportion = 0.1
-    # waveglow_config = "waveglow_data_config.json"
+    data_dir = sys.argv[1] 
+    speaker_info_path = sys.argv[2] 
+    output_dir = sys.argv[3] 
+    test_speakers = int(sys.argv[4])
+    test_proportion = float(sys.argv[5])
+    waveglow_config = sys.argv[6] 
 
     with open(waveglow_config) as f:
         data = f.read()
