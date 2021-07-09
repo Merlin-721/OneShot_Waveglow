@@ -1,5 +1,6 @@
 import torch
 import matplotlib.pyplot as plt
+import sys
 
 def plot_data(data):
 	fig, axes = plt.subplots(1,1)
@@ -9,7 +10,7 @@ def plot_data(data):
 	
 if __name__ == '__main__':
 
-	path = "converted_mels/vctk_22_first.wav.pt"
+	path = sys.argv[1]
 
 	with open(path, "rb") as file:
 		spec = torch.load(file)
