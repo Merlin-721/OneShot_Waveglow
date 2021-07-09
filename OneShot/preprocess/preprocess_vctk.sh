@@ -26,7 +26,4 @@ fi
 if [ $stage -le 4 ]; then
     printf "\n Getting attributes for normalisation/denormalisation\n"
     python3 get_attr.py $data_dir/train_$segment_size.pkl $data_dir/VCTK_attr.pkl
-    # printf "\n Saving individual specs\n"
-    # python3 save_spect_from_pkl.py
-    # python3 check_data.py
 fi
