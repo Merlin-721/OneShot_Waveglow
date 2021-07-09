@@ -14,12 +14,6 @@ if __name__ == '__main__':
     print(f"Segment size: {segment_size}")
 
     reduced_data = {key:val for key, val in data.items() if val.shape[0] >= segment_size}
-    # reduced_data = {}
-    # for key, val in data.items():
-    #     if val.shape[0] > segment_size:
-    #         start = random.randint(0, val.shape[0] - segment_size)
-    #         end = start + segment_size
-    #         reduced_data[key] = val[start:end]
 
     print(f"Instances after reducing data: {len(reduced_data)}")
     print(f"Saving as {output_path}")
