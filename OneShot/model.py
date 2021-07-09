@@ -6,7 +6,7 @@ import numpy as np
 from math import ceil
 from functools import reduce
 from torch.nn.utils import spectral_norm
-from utils import cc
+from .utils import cc
 
 class DummyEncoder(object):
     def __init__(self, encoder):
