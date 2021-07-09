@@ -2,3 +2,6 @@
 *.ckpt
 *_pycache__/
 *vscode
+log/
+models/
+data/
