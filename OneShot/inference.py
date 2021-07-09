@@ -6,8 +6,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 import yaml
 import pickle
-from model import AE
-from utils import *
+from .model import AE
+from .utils import *
 from functools import reduce
 import json
 from collections import defaultdict
@@ -18,8 +18,8 @@ from argparse import ArgumentParser, Namespace
 from scipy.io.wavfile import write
 import random
 # from preprocess.tacotron.utils import get_spectrograms
-from preprocess.tacotron2 import audio_processing
-from preprocess.mel2samp import load_wav_to_torch, Mel2Samp
+from tacotron2 import audio_processing
+from Waveglow.mel2samp import load_wav_to_torch, Mel2Samp
 import librosa 
 
 class OneShotInferencer(object):
@@ -41,8 +41,8 @@ class OneShotInferencer(object):
             self.attr = pickle.load(f)
 
     def load_model(self):
-        print(f'Load model from {self.args.model}')
-        self.model.load_state_dict(torch.load(f'{self.args.model}'))
+        print(f'Load model from {self.args.oneshot_model}')
+        self.model.load_state_dict(torch.load(f'{self.args.oneshot_model}'))
         return
 
     def build_model(self): 
@@ -100,24 +100,24 @@ class OneShotInferencer(object):
         
         conv_mel = self.inference_one_utterance(src_mel, tar_mel)
         # self.write_wav_to_file(conv_wav, self.args.output)
-        self.write_mel_to_file(conv_mel,self.args.output)
-        return
+        # self.write_mel_to_file(conv_mel,self.args.output)
+        return conv_mel
         
 # python inference.py -a attr.pkl -c config.yaml -model vctk_model.ckpt -s eg_wavs/p255_001.wav -t eg_wavs/p240_001.wav -o output_wavs/test4.wav -sr 24000
 if __name__ == '__main__':
     parser = ArgumentParser()
-    parser.add_argument('-attr', '-a', help='attr file path')
-    parser.add_argument('-config', '-c', help='config file path')
-    parser.add_argument('-model', '-m', help='model path')
     parser.add_argument('-source', '-s', help='source wav path')
     parser.add_argument('-target', '-t', help='target wav path')
     parser.add_argument('-output', '-o', help='output wav path')
+    parser.add_argument('-attr', '-a', help='attr file path')
+    parser.add_argument('-oneshot_conf', '-c', help='config file path')
+    parser.add_argument('-oneshot_model', '-m', help='model path')
     parser.add_argument('-sample_rate', '-sr', help='sample rate', default=22050, type=int)
-    parser.add_argument('-data_config_path', '-w', help='path to config matching waveglow model')
+    parser.add_argument('-data_config', '-w', help='path to config matching waveglow model')
     args = parser.parse_args()
     # load config file 
-    with open(args.config) as f:
-        config = yaml.load(f)
+    with open(args.oneshot_conf) as f:
+        oneshot_conf = yaml.load(f)
 
     with open(args.data_config_path) as f:
         waveglow_config = f.read()
@@ -125,5 +125,5 @@ if __name__ == '__main__':
     data_config = json.loads(waveglow_config)["data_config"]
     data_config["training_files"] = "preprocess/data/VCTK/22kHz_mels/train_files.txt"
 
-    inferencer = OneShotInferencer(config=config, args=args)
+    inferencer = OneShotInferencer(config=oneshot_conf, args=args)
     inferencer.inference_from_path(data_config)
