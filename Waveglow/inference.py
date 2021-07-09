@@ -31,7 +31,7 @@ from .mel2samp import files_to_list, MAX_WAV_VALUE
 from .denoiser import Denoiser
 
 
-class WaveglowInference(object):
+class WaveglowInferencer(object):
     def __init__(self, args):
         self.args = args
 
@@ -46,7 +46,7 @@ class WaveglowInference(object):
         if args.denoiser_strength > 0:
             self.denoiser = Denoiser(self.waveglow).cuda()
         
-    def inference(self, mel):
+    def inference(self, mel, filename):
         # takes transposed mel from oneshot
         with torch.no_grad():
             mel = torch.from_numpy(mel.astype("float32")).unsqueeze(0).cuda()
@@ -61,11 +61,11 @@ class WaveglowInference(object):
 
             audio = audio.squeeze(0).cpu().numpy()
             audio = audio.astype("int16")
-            audio_path = os.path.join(self.args.output_dir, 
-                        "{}_synthesis.wav".format("objectVersion"))
+            audio_path = os.path.join(self.args.output, 
+                        "{}_synthesis.wav".format(filename))
 
             print(f"Writing audio to {audio_path}")
-            write(audio_path, self.args.sampling_rate, audio)
+            write(audio_path, self.args.sample_rate, audio)
 
 
 if __name__ == "__main__":
@@ -75,7 +75,7 @@ if __name__ == "__main__":
     parser.add_argument('-f', "--filelist_path", required=True)
     parser.add_argument('-w', '--waveglow_path',
                         help='Path to waveglow decoder checkpoint with model')
-    parser.add_argument('-o', "--output_dir", required=True)
+    parser.add_argument('-o', "--output", required=True)
     parser.add_argument("-s", "--sigma", default=1.0, type=float)
     parser.add_argument("--sampling_rate", default=22050, type=int)
     parser.add_argument("--is_fp16", action="store_true")
@@ -84,9 +84,9 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    inferencer = WaveglowInference(args)
+    inferencer = WaveglowInferencer(args)
 
     files = files_to_list(args.filelist_path)
     for file in files:
         mel = torch.load(file)
-        inferencer.inference(mel.T)
+        inferencer.inference(mel.T, "test")
