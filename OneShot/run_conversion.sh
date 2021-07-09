@@ -5,7 +5,7 @@ python inference.py \
  -s eg_wavs/22k_1.wav \
  -t eg_wavs/22k_2.wav \
  -o converted_mels/22k_test.wav.pt \
- -w preprocess/waveglow_VCTK_config.json \
+ -w ../Waveglow/config.json \
  -sample_rate 22050
 
 python show_mel.py \
