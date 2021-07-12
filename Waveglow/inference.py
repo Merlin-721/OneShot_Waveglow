@@ -56,13 +56,13 @@ class WaveglowInferencer(object):
             audio = self.waveglow.infer(mel, sigma=self.args.sigma)
 
             if self.args.denoiser_strength > 0:
-                audio = self.denoiser(audio, self.args.denoiser_strength)
+                audio = self.denoiser.forward(audio, self.args.denoiser_strength)[:,0]
             audio = audio * MAX_WAV_VALUE
 
             audio = audio.squeeze(0).cpu().numpy()
             audio = audio.astype("int16")
             audio_path = os.path.join(self.args.output, 
-                        "{}_synthesis.wav".format(filename))
+                        "{}.wav".format(filename))
 
             print(f"Writing audio to {audio_path}")
             write(audio_path, self.args.sample_rate, audio)
