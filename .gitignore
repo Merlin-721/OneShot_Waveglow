@@ -7,3 +7,4 @@ models/
 data/
 input_wavs
 output_wavs
+output_mels
