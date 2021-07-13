@@ -2,6 +2,7 @@ import torch
 import yaml
 import json
 from argparse import ArgumentParser
+from OneShot.show_mel import plot_data
 from OneShot.inference import OneShotInferencer
 from Waveglow.inference import WaveglowInferencer
 
@@ -11,6 +12,7 @@ if __name__ == '__main__':
 	parser.add_argument('-source', '-s', help='source wav path')
 	parser.add_argument('-target', '-t', help='target wav path')
 	parser.add_argument('-output', '-o', help='output wav path')
+	parser.add_argument('-output_name', help='name of output file')
 
 	# OneShot
 	parser.add_argument('-attr', '-a', help='data mean & std attr file path')
@@ -41,5 +43,7 @@ if __name__ == '__main__':
 
 	print("\nRunning OneShot")
 	mel = oneshot_inferencer.inference_from_path(data_config)
+	# plot_data(mel)
 	print("\nRunning Waveglow")
-	waveglow_inferencer.inference(mel.T, "output_test")
+	name = f"{args.oneshot_model.split('/')[-1][-9:-5]}_sig_{args.sigma}_den_{args.denoiser_strength}_{args.output_name}"
+	waveglow_inferencer.inference(mel.T, name)
