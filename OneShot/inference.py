@@ -85,6 +85,17 @@ class OneShotInferencer(object):
     #     write(output_path, rate=self.args.sample_rate, data=wav_data)
     #     return
 
+    def remove_noise(self,mel, strength=0.2, mode='zeros'):
+        if mode == 'zeros':
+            denoise_mel = torch.zeros(mel.shape).cuda()
+        if mode == 'rand':
+            denoise_mel = torch.randn(mel.shape).cuda()
+        noise_mel = self.inference_one_utterance(denoise_mel, denoise_mel)
+        noise_mel = np.mean(noise_mel,axis=0,keepdims=True)
+
+        noise_removed = mel - (noise_mel * strength)
+        return noise_removed
+
     def write_mel_to_file(self, mel_data, output_path):
         print(f"Writing mel to {output_path}")
         torch.save(mel_data,output_path)
@@ -105,16 +116,8 @@ class OneShotInferencer(object):
         # plot_data(np.array(tar_mel.cpu()), "Target mel norm")
         conv_mel = self.inference_one_utterance(src_mel, tar_mel)
 
-        denoise_mel_zero = torch.zeros(src_mel.shape).cuda()
-        denoise_mel_rand = torch.randn(src_mel.shape).cuda()
-        noise_mel = self.inference_one_utterance(denoise_mel_zero, denoise_mel_zero)
-        noise_mel = np.mean(noise_mel,axis=0,keepdims=True)
-
-        # plot_data(noise_mel, "Noise mel")
-        # plot_data(conv_mel, "OS before denoise")
-
+        conv_mel = self.remove_noise(conv_mel, strength=0.5, mode='zeros')
         conv_mel = self.denormalize(conv_mel)
-        conv_mel -= (noise_mel * 0.2)
         # plot_data(conv_mel, "OS post denoise")
         # self.write_wav_to_file(conv_wav, self.args.output)
         # self.write_mel_to_file(conv_mel,self.args.output)
