@@ -21,6 +21,7 @@ import random
 from tacotron2 import audio_processing
 from Waveglow.mel2samp import load_wav_to_torch, Mel2Samp
 import librosa 
+from .show_mel import plot_data
 
 class OneShotInferencer(object):
     def __init__(self, config, args):
@@ -66,7 +67,6 @@ class OneShotInferencer(object):
         dec = self.model.inference(x, x_cond)
         dec = dec.transpose(1, 2).squeeze(0)
         dec = dec.detach().cpu().numpy()
-        dec = self.denormalize(dec)
         # this is where to integrate waveglow (ie replace griffin lim)
         # wav_data = melspectrogram2wav(dec)
         return dec
@@ -95,10 +95,27 @@ class OneShotInferencer(object):
         tar_audio, _ = load_wav_to_torch(self.args.target)
         src_mel = np.array(MelProcessor.get_mel(src_audio).T)
         tar_mel = np.array(MelProcessor.get_mel(tar_audio).T)
+
+        # plot_data(src_mel, "Source mel")
+        # plot_data(tar_mel, "Target mel")
+
         src_mel = torch.from_numpy(self.normalize(src_mel)).cuda()
         tar_mel = torch.from_numpy(self.normalize(tar_mel)).cuda()
-        
+        # plot_data(np.array(src_mel.cpu()), "Source mel norm")
+        # plot_data(np.array(tar_mel.cpu()), "Target mel norm")
         conv_mel = self.inference_one_utterance(src_mel, tar_mel)
+
+        denoise_mel_zero = torch.zeros(src_mel.shape).cuda()
+        denoise_mel_rand = torch.randn(src_mel.shape).cuda()
+        noise_mel = self.inference_one_utterance(denoise_mel_zero, denoise_mel_zero)
+        noise_mel = np.mean(noise_mel,axis=0,keepdims=True)
+
+        # plot_data(noise_mel, "Noise mel")
+        # plot_data(conv_mel, "OS before denoise")
+
+        conv_mel = self.denormalize(conv_mel)
+        conv_mel -= (noise_mel * 0.2)
+        # plot_data(conv_mel, "OS post denoise")
         # self.write_wav_to_file(conv_wav, self.args.output)
         # self.write_mel_to_file(conv_mel,self.args.output)
         return conv_mel
