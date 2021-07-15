@@ -1,7 +1,7 @@
 python dual_inference.py \
-	-target input_wavs/p284_024.wav \
-	-source input_wavs/p341_008.wav \
-	-output output_wavs/sig_1_den_0.2_0.1_tests \
+	-target input_wavs/p336_021.wav \
+	-source input_wavs/p284_024.wav \
+	-output output_wavs/ \
 	-output_name  blank\
 	-attr OneShot/preprocess/data/VCTK/VCTK_attr.pkl \
 	-oneshot_conf OneShot/config.yaml\
