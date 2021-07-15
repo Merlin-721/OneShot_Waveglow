@@ -29,7 +29,7 @@ from scipy.io.wavfile import write
 import torch
 from .mel2samp import files_to_list, MAX_WAV_VALUE
 from .denoiser import Denoiser
-
+from OneShot.show_mel import plot_data
 
 class WaveglowInferencer(object):
     def __init__(self, args):
@@ -51,12 +51,16 @@ class WaveglowInferencer(object):
         with torch.no_grad():
             mel = torch.from_numpy(mel.astype("float32")).unsqueeze(0).cuda()
             mel = torch.autograd.Variable(mel)
+
+            if self.args.denoiser_strength > 0:
+                mel = self.denoiser.forward(mel.squeeze(), self.args.denoiser_strength)
+                mel = mel.unsqueeze(0)
             mel = mel.half() if self.args.is_fp16 else mel
+
+            plot_data(mel.squeeze(0).cpu().numpy().T.astype("float32"), "WG Denoised mel")
 
             audio = self.waveglow.infer(mel, sigma=self.args.sigma)
 
-            if self.args.denoiser_strength > 0:
-                audio = self.denoiser.forward(audio, self.args.denoiser_strength)[:,0]
             audio = audio * MAX_WAV_VALUE
 
             audio = audio.squeeze(0).cpu().numpy()
@@ -76,6 +80,7 @@ if __name__ == "__main__":
     parser.add_argument('-w', '--waveglow_path',
                         help='Path to waveglow decoder checkpoint with model')
     parser.add_argument('-o', "--output", required=True)
+    parser.add_argument("-output_name", required=True)
     parser.add_argument("-s", "--sigma", default=1.0, type=float)
     parser.add_argument("--sampling_rate", default=22050, type=int)
     parser.add_argument("--is_fp16", action="store_true")
@@ -89,4 +94,4 @@ if __name__ == "__main__":
     files = files_to_list(args.filelist_path)
     for file in files:
         mel = torch.load(file)
-        inferencer.inference(mel.T, "test")
+        inferencer.inference(mel.T, args.output_name)
