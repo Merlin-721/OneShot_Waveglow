@@ -43,5 +43,5 @@ class Denoiser(torch.nn.Module):
     def forward(self,mel, strength=0.1):
         noise = torch.mean(self.bias_spec, axis=1)
         noise = torch.clamp(noise, max=0.0)
-        audio_spec_denoised = mel.T + noise * strength
+        audio_spec_denoised = mel.T - (noise * strength)
         return audio_spec_denoised.T
