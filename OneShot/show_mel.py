@@ -1,11 +1,14 @@
 import torch
 import matplotlib.pyplot as plt
+from matplotlib.colors import Normalize
 import sys
 
-def plot_data(data):
+def plot_data(data, title=None):
 	fig, axes = plt.subplots(1,1)
 	axes.imshow(data.T, aspect='auto', origin='lower', 
-		interpolation='none')
+		interpolation='none', norm=Normalize(-18,2))
+	if title is not None:
+		plt.title(title)
 	plt.show()
 
 	
