@@ -3,7 +3,7 @@ python3 main.py \
 	-d preprocess/data/VCTK/ \
 	-train_set train_128 \
 	-train_index_file train_samples_128.json \
-	-store_model_path models/vctk_22kHz/vctk_22_kl_1_full \
-	-t vctk_22_kl_1_full \
-	-iters 200000 \
+	-store_model_path models/vctk_22kHz_dropout/vctk_22_dropout \
+	-t vctk_22_dropout \
+	-iters 300000 \
 	-summary_step 500
