@@ -46,5 +46,5 @@ if __name__ == '__main__':
 	# plot_data(mel)
 	print("\nRunning Waveglow")
 	# name = f"{args.oneshot_model.split('/')[-1][-9:-5]}_sig_{args.sigma}_den_{args.denoiser_strength}_{args.output_name}"
-	name = f"{args.oneshot_model.split('/')[-1][-9:-5]}_{args.source.split('/')[-1][:4]}_{args.target.split('/')[-1][:4]}"
+	name = f"{args.oneshot_model.split('/')[-1][-9:-5]}_{args.source.split('/')[-1][:4]}_{args.target.split('/')[-1][:4]}_{args.output_name}"
 	waveglow_inferencer.inference(mel.T, name)
