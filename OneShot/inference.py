@@ -100,10 +100,10 @@ class OneShotInferencer(object):
         print(f"Writing mel to {output_path}")
         torch.save(mel_data,output_path)
 
-    def inference_from_path(self, waveglow_config):
+    def inference_from_path(self, waveglow_config, source, target):
         MelProcessor = Mel2Samp(**waveglow_config)
-        src_audio, _ = load_wav_to_torch(self.args.source)
-        tar_audio, _ = load_wav_to_torch(self.args.target)
+        src_audio, _ = load_wav_to_torch(source)
+        tar_audio, _ = load_wav_to_torch(target)
         src_mel = np.array(MelProcessor.get_mel(src_audio).T)
         tar_mel = np.array(MelProcessor.get_mel(tar_audio).T)
 
@@ -146,4 +146,4 @@ if __name__ == '__main__':
     data_config["training_files"] = "preprocess/data/VCTK/22kHz_mels/train_files.txt"
 
     inferencer = OneShotInferencer(config=oneshot_conf, args=args)
-    inferencer.inference_from_path(data_config)
+    inferencer.inference_from_path(data_config,args.source,args.target)
