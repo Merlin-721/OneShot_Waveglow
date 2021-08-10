@@ -46,7 +46,7 @@ class WaveglowInferencer(object):
         if args.denoiser_strength > 0:
             self.denoiser = Denoiser(self.waveglow).cuda()
         
-    def inference(self, mel, filename):
+    def inference(self, mel, filename, plot=False):
         # takes transposed mel from oneshot
         with torch.no_grad():
             mel = torch.from_numpy(mel.astype("float32")).unsqueeze(0).cuda()
@@ -57,7 +57,8 @@ class WaveglowInferencer(object):
                 mel = mel.unsqueeze(0)
             mel = mel.half() if self.args.is_fp16 else mel
 
-            plot_data(mel.squeeze(0).cpu().numpy().T.astype("float32"), "WG Denoised mel")
+            if plot:
+                plot_data(mel.squeeze(0).cpu().numpy().T.astype("float32"), "WG Denoised mel")
 
             audio = self.waveglow.infer(mel, sigma=self.args.sigma)
 
