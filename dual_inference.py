@@ -1,6 +1,9 @@
 import torch
+import numpy as np
 import yaml
 import json
+from pathlib import Path
+import os
 from argparse import ArgumentParser
 from OneShot.show_mel import plot_data
 from OneShot.inference import OneShotInferencer
@@ -33,7 +36,16 @@ if __name__ == '__main__':
 
 	with open(args.oneshot_conf) as f:
 		oneshot_conf = yaml.load(f)
-	
+
+	# if source is directory, convert all files	
+	if args.source[-1] == '/':
+		wav_fpaths = list(Path(args.source).glob("**/*.wav"))
+		speakers = list(map(lambda wav_fpath: wav_fpath.parent.stem, wav_fpaths))	
+	else:
+		wav_fpaths = [Path(args.source)]
+		speakers = ["output"]
+	target = Path(args.target)
+
 	oneshot_inferencer = OneShotInferencer(config=oneshot_conf, args=args)
 	waveglow_inferencer = WaveglowInferencer(args)
 
@@ -41,10 +53,17 @@ if __name__ == '__main__':
 		data_config = f.read()
 	data_config = json.loads(data_config)["data_config"]
 
-	print("\nRunning OneShot")
-	mel = oneshot_inferencer.inference_from_path(data_config)
-	# plot_data(mel)
-	print("\nRunning Waveglow")
-	# name = f"{args.oneshot_model.split('/')[-1][-9:-5]}_sig_{args.sigma}_den_{args.denoiser_strength}_{args.output_name}"
-	name = f"{args.oneshot_model.split('/')[-1][-9:-5]}_{args.source.split('/')[-1][:4]}_{args.target.split('/')[-1][:4]}_{args.output_name}"
-	waveglow_inferencer.inference(mel.T, name)
+	for i, speaker in enumerate(np.unique(speakers)):	
+		utts = np.where(np.array(speakers) == speaker)
+
+		if not os.path.exists(f"{args.output}/{speaker}"):
+			os.makedirs(f"{args.output}/{speaker}")
+
+		for source in np.array(wav_fpaths)[utts]:
+
+			print("\nRunning OneShot")
+			mel = oneshot_inferencer.inference_from_path(data_config, source, target)
+
+			print("\nRunning Waveglow")
+			name = f"{speaker}/{source.name.split('.')[0]}_{target.name.split('.')[0]}"
+			waveglow_inferencer.inference(mel.T, name)
