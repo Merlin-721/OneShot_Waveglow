@@ -12,6 +12,9 @@ from Waveglow.inference import WaveglowInferencer
 if __name__ == '__main__':
 	parser = ArgumentParser()
 
+	# Source can be single file or directory of speakers
+	# Outputs to seperate directories 
+
 	parser.add_argument('-source', '-s', help='source wav path')
 	parser.add_argument('-target', '-t', help='target wav path')
 	parser.add_argument('-output', '-o', help='output wav path')
