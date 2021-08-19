@@ -8,6 +8,16 @@ from argparse import ArgumentParser
 from OneShot.show_mel import plot_data
 from OneShot.inference import OneShotInferencer
 from Waveglow.inference import WaveglowInferencer
+import time
+
+def files_from_path(path):
+	if os.path.isdir(path):
+		wav_fpaths = list(Path(path).glob('**/*.wav'))
+		speakers = list(map(lambda wav_fpath: wav_fpath.parent.stem, wav_fpaths))	
+	else:
+		wav_fpaths = [Path(path)]
+		speakers = [Path(path).stem]
+	return wav_fpaths, speakers
 
 if __name__ == '__main__':
 	parser = ArgumentParser()
@@ -17,7 +27,7 @@ if __name__ == '__main__':
 
 	parser.add_argument('-source', '-s', help='source wav path')
 	parser.add_argument('-target', '-t', help='target wav path')
-	parser.add_argument('-output', '-o', help='output wav path')
+	parser.add_argument('-output_dir', '-o', help='output wav path')
 	parser.add_argument('-output_name', help='name of output file')
 
 	# OneShot
@@ -40,14 +50,18 @@ if __name__ == '__main__':
 	with open(args.oneshot_conf) as f:
 		oneshot_conf = yaml.load(f)
 
-	# if source is directory, convert all files	
-	if args.source[-1] == '/':
-		wav_fpaths = list(Path(args.source).glob("**/*.wav"))
-		speakers = list(map(lambda wav_fpath: wav_fpath.parent.stem, wav_fpaths))	
-	else:
-		wav_fpaths = [Path(args.source)]
-		speakers = ["output"]
-	target = Path(args.target)
+	wav_fpaths, speakers = files_from_path(args.source)
+	target, _ = files_from_path(args.target)
+	if len(target) != 1:
+		raise Exception("Target folder must contain 1 wav file")
+	target = target[0]
+
+	if not os.path.exists(target):
+		raise Exception(f"Target file {target} does not exist")
+
+	if not os.path.exists(args.output_dir):
+		os.makedirs(args.output_dir)
+
 
 	oneshot_inferencer = OneShotInferencer(config=oneshot_conf, args=args)
 	waveglow_inferencer = WaveglowInferencer(args)
@@ -56,17 +70,22 @@ if __name__ == '__main__':
 		data_config = f.read()
 	data_config = json.loads(data_config)["data_config"]
 
+	start = time.time()
+	utt_count = 0
 	for i, speaker in enumerate(np.unique(speakers)):	
 		utts = np.where(np.array(speakers) == speaker)
 
-		if not os.path.exists(f"{args.output}/{speaker}"):
-			os.makedirs(f"{args.output}/{speaker}")
+		if not os.path.exists(f"{args.output_dir}/{speaker}"):
+			os.makedirs(f"{args.output_dir}/{speaker}")
 
 		for source in np.array(wav_fpaths)[utts]:
-
+			utt_count += 1
 			print("\nRunning OneShot")
 			mel = oneshot_inferencer.inference_from_path(data_config, source, target)
 
-			print("\nRunning Waveglow")
-			name = f"{speaker}/{source.name.split('.')[0]}_{target.name.split('.')[0]}"
+			print("Running Waveglow")
+			name = f"{speaker}/{source.stem}_{target.stem}"	
 			waveglow_inferencer.inference(mel.T, name)
+	end = time.time()
+	ET = end - start
+	print(f"\nTotal time for {i+1} speakers and {utt_count} utterances: {ET}")
