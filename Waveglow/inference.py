@@ -66,7 +66,7 @@ class WaveglowInferencer(object):
 
             audio = audio.squeeze(0).cpu().numpy()
             audio = audio.astype("int16")
-            audio_path = os.path.join(self.args.output, 
+            audio_path = os.path.join(self.args.output_dir, 
                         "{}.wav".format(filename))
 
             print(f"Writing audio to {audio_path}")
@@ -80,7 +80,7 @@ if __name__ == "__main__":
     parser.add_argument('-f', "--filelist_path", required=True)
     parser.add_argument('-w', '--waveglow_path',
                         help='Path to waveglow decoder checkpoint with model')
-    parser.add_argument('-o', "--output", required=True)
+    parser.add_argument('-o', "--output_dir", required=True)
     parser.add_argument("-output_name", required=True)
     parser.add_argument("-s", "--sigma", default=1.0, type=float)
     parser.add_argument("--sampling_rate", default=22050, type=int)
