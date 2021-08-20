@@ -80,7 +80,8 @@ if __name__ == '__main__':
 
 		for source in np.array(wav_fpaths)[utts]:
 			utt_count += 1
-			print("\nRunning OneShot")
+			print(f"\nConverting {source.name} to {target.name}")
+			print("Running OneShot")
 			mel = oneshot_inferencer.inference_from_path(data_config, source, target)
 
 			print("Running Waveglow")
