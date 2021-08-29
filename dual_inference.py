@@ -82,11 +82,11 @@ if __name__ == '__main__':
 			utt_count += 1
 			print(f"\nConverting {source.name} to {target.name}")
 			print("Running OneShot")
-			mel = oneshot_inferencer.inference_from_path(data_config, source, target)
+			mel,_ = oneshot_inferencer.inference_from_path(data_config, source, target)
 
 			print("Running Waveglow")
 			name = f"{speaker}/{source.stem}_{target.stem}"	
-			waveglow_inferencer.inference(mel.T, name)
+			waveglow_inferencer.inference(mel.T, name, plot=True)
 	end = time.time()
 	ET = end - start
 	print(f"\nTotal time for {i+1} speakers and {utt_count} utterances: {ET}")
