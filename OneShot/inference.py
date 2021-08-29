@@ -22,6 +22,7 @@ from tacotron2 import audio_processing
 from Waveglow.mel2samp import load_wav_to_torch, Mel2Samp
 import librosa 
 from .show_mel import plot_data
+import time
 
 class OneShotInferencer(object):
     def __init__(self, config, args):
@@ -85,12 +86,14 @@ class OneShotInferencer(object):
     #     write(output_path, rate=self.args.sample_rate, data=wav_data)
     #     return
 
-    def remove_noise(self,mel, strength=0.2, mode='zeros'):
+    def remove_noise(self,mel,tar_mel, strength=0.2, mode='zeros'):
         if mode == 'zeros':
             denoise_mel = torch.zeros(mel.shape).cuda()
-        if mode == 'rand':
+        elif mode == 'rand':
             denoise_mel = torch.randn(mel.shape).cuda()
-        noise_mel = self.inference_one_utterance(denoise_mel, denoise_mel)
+        else:
+            raise Exception("Denoise mode must be zeros or rand")
+        noise_mel = self.inference_one_utterance(denoise_mel, tar_mel)
         noise_mel = np.mean(noise_mel,axis=0,keepdims=True)
 
         noise_removed = mel - (noise_mel * strength)
@@ -112,16 +115,19 @@ class OneShotInferencer(object):
 
         src_mel = torch.from_numpy(self.normalize(src_mel)).cuda()
         tar_mel = torch.from_numpy(self.normalize(tar_mel)).cuda()
+        # src_mel = torch.from_numpy(src_mel).cuda()
+        # tar_mel = torch.from_numpy(tar_mel).cuda()
         # plot_data(np.array(src_mel.cpu()), "Source mel norm")
         # plot_data(np.array(tar_mel.cpu()), "Target mel norm")
+        start_time = time.time()
         conv_mel = self.inference_one_utterance(src_mel, tar_mel)
-
-        conv_mel = self.remove_noise(conv_mel, strength=0.5, mode='zeros')
+        duration = time.time() - start_time
+        conv_mel = self.remove_noise(conv_mel, tar_mel, strength=0.1, mode='zeros')
         conv_mel = self.denormalize(conv_mel)
         # plot_data(conv_mel, "OS post denoise")
         # self.write_wav_to_file(conv_wav, self.args.output)
         # self.write_mel_to_file(conv_mel,self.args.output)
-        return conv_mel
+        return conv_mel, duration
         
 # python inference.py -a attr.pkl -c config.yaml -model vctk_model.ckpt -s eg_wavs/p255_001.wav -t eg_wavs/p240_001.wav -o output_wavs/test4.wav -sr 24000
 if __name__ == '__main__':
