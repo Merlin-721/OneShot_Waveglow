@@ -33,7 +33,7 @@ Decoder:
     upsample: [2, 1, 2, 1, 2, 1]
     act: 'relu'
     sn: False
-    dropout_rate: 0
+    dropout_rate: 0.5
 data_loader:
     segment_size: 128
     frame_size: 1
