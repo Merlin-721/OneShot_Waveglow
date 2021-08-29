@@ -46,7 +46,7 @@ class WaveglowInferencer(object):
         if args.denoiser_strength > 0:
             self.denoiser = Denoiser(self.waveglow).cuda()
         
-    def inference(self, mel, filename, plot=False):
+    def inference(self, mel, filepath, plot=False, save_wav=True):
         # takes transposed mel from oneshot
         with torch.no_grad():
             mel = torch.from_numpy(mel.astype("float32")).unsqueeze(0).cuda()
@@ -63,14 +63,13 @@ class WaveglowInferencer(object):
             audio = self.waveglow.infer(mel, sigma=self.args.sigma)
 
             audio = audio * MAX_WAV_VALUE
-
             audio = audio.squeeze(0).cpu().numpy()
             audio = audio.astype("int16")
-            audio_path = os.path.join(self.args.output_dir, 
-                        "{}.wav".format(filename))
-
-            print(f"Writing audio to {audio_path}")
-            write(audio_path, self.args.sample_rate, audio)
+            if save_wav:
+                print(f"Writing audio to {filepath}")
+                write(filepath, self.args.sample_rate, audio)
+            else:
+                return audio
 
 
 if __name__ == "__main__":
