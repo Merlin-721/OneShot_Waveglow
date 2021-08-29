@@ -9,3 +9,7 @@ input_wavs
 output_wavs
 output_mels
 target_wav
+Speed_Test.py
+run_eval_inf.sh
+run_speed_test.sh
+Speed_Test_figs/
