@@ -13,3 +13,4 @@ Speed_Test.py
 run_eval_inf.sh
 run_speed_test.sh
 Speed_Test_figs/
+eval_inference.py
