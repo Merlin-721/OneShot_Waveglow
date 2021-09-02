@@ -14,10 +14,11 @@ def attributes(instances):
 	return mean, std
 
 if __name__ == '__main__':
+	"""
+	Path to pkl files
+	"""
 	path = sys.argv[1]
 	save_path = sys.argv[2]
-	# path = "preprocess/data/VCTK/22kHz_mels/train_128.pkl"
-	# save_path = "preprocess/data/VCTK/22kHz_mels/VCTK_attr.pkl"
 
 	with open(path,"rb") as f:
 		instance_dict = pickle.load(f)
