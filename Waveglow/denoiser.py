@@ -1,7 +1,7 @@
 import sys
 sys.path.append('tacotron2')
 import torch
-from tacotron2.layers import TacotronSTFT
+from Waveglow.tacotron2.layers import TacotronSTFT
 from Waveglow.mel2samp import MAX_WAV_VALUE
 
 def get_mel(audio,stft):
