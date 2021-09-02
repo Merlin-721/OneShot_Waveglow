@@ -1,3 +1,19 @@
+# References
+The code contained in this work is an adaptation of:
+https://github.com/jjery2243542/adaptive_voice_conversion and
+https://github.com/NVIDIA/WaveGlow
+
+License details for each can be found in OneShot/LICENSE and 
+Waveglow/LICENSE respectively. 
+
+Details of changes are outlined in the report:
+"Vocal Style-Transfer for Anti-Bias Interviews", Section 3.3
+
+Line-by-line changes are contained in the Differences directory.
+
+I verify that I am the sole author of the programmes contained in
+this archive, except where explicitly stated to the contrary.
+Merlin Lindsay, 02.09.2021
 ## To Run Conversion
 In terminal type:
 
