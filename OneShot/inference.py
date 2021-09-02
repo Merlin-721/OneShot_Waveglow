@@ -87,12 +87,13 @@ class OneShotInferencer(object):
     #     return
 
     def remove_noise(self,mel,tar_mel, strength=0.2, mode='zeros'):
-        if mode == 'zeros':
-            denoise_mel = torch.zeros(mel.shape).cuda()
+        if mode == 'blank':
+            denoise_mel = torch.full(mel.shape, -12.0, dtype=torch.float32).cuda()
+            # denoise_mel = torch.zeros(mel.shape).cuda()
         elif mode == 'rand':
             denoise_mel = torch.randn(mel.shape).cuda()
         else:
-            raise Exception("Denoise mode must be zeros or rand")
+            raise Exception("Denoise mode must be blank or rand")
         noise_mel = self.inference_one_utterance(denoise_mel, tar_mel)
         noise_mel = np.mean(noise_mel,axis=0,keepdims=True)
 
@@ -122,7 +123,7 @@ class OneShotInferencer(object):
         start_time = time.time()
         conv_mel = self.inference_one_utterance(src_mel, tar_mel)
         duration = time.time() - start_time
-        conv_mel = self.remove_noise(conv_mel, tar_mel, strength=0.1, mode='zeros')
+        conv_mel = self.remove_noise(conv_mel, tar_mel, strength=0.1, mode='blank')
         conv_mel = self.denormalize(conv_mel)
         # plot_data(conv_mel, "OS post denoise")
         # self.write_wav_to_file(conv_wav, self.args.output)
