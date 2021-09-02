@@ -1,27 +1,14 @@
 import torch
 import numpy as np
-import sys
-import os 
-import torch.nn as nn
 import torch.nn.functional as F
 import yaml
 import pickle
 from .model import AE
 from .utils import *
-from functools import reduce
 import json
-from collections import defaultdict
-from torch.utils.data import Dataset
-from torch.utils.data import TensorDataset
-from torch.utils.data import DataLoader
-from argparse import ArgumentParser, Namespace
-from scipy.io.wavfile import write
-import random
-# from preprocess.tacotron.utils import get_spectrograms
-from tacotron2 import audio_processing
+from argparse import ArgumentParser
 from Waveglow.mel2samp import load_wav_to_torch, Mel2Samp
-import librosa 
-from .show_mel import plot_data
+from show_mel import plot_data
 import time
 
 class OneShotInferencer(object):
@@ -68,8 +55,6 @@ class OneShotInferencer(object):
         dec = self.model.inference(x, x_cond)
         dec = dec.transpose(1, 2).squeeze(0)
         dec = dec.detach().cpu().numpy()
-        # this is where to integrate waveglow (ie replace griffin lim)
-        # wav_data = melspectrogram2wav(dec)
         return dec
 
     def denormalize(self, x):
@@ -81,10 +66,6 @@ class OneShotInferencer(object):
         m, s = self.attr['mean'], self.attr['std']
         ret = (x - m) / s
         return ret
-
-    # def write_wav_to_file(self, wav_data, output_path):
-    #     write(output_path, rate=self.args.sample_rate, data=wav_data)
-    #     return
 
     def remove_noise(self,mel,tar_mel, strength=0.2, mode='zeros'):
         if mode == 'blank':
@@ -111,26 +92,15 @@ class OneShotInferencer(object):
         src_mel = np.array(MelProcessor.get_mel(src_audio).T)
         tar_mel = np.array(MelProcessor.get_mel(tar_audio).T)
 
-        # plot_data(src_mel, "Source mel")
-        # plot_data(tar_mel, "Target mel")
-
         src_mel = torch.from_numpy(self.normalize(src_mel)).cuda()
         tar_mel = torch.from_numpy(self.normalize(tar_mel)).cuda()
-        # src_mel = torch.from_numpy(src_mel).cuda()
-        # tar_mel = torch.from_numpy(tar_mel).cuda()
-        # plot_data(np.array(src_mel.cpu()), "Source mel norm")
-        # plot_data(np.array(tar_mel.cpu()), "Target mel norm")
         start_time = time.time()
         conv_mel = self.inference_one_utterance(src_mel, tar_mel)
         duration = time.time() - start_time
         conv_mel = self.remove_noise(conv_mel, tar_mel, strength=0.1, mode='blank')
         conv_mel = self.denormalize(conv_mel)
-        # plot_data(conv_mel, "OS post denoise")
-        # self.write_wav_to_file(conv_wav, self.args.output)
-        # self.write_mel_to_file(conv_mel,self.args.output)
         return conv_mel, duration
         
-# python inference.py -a attr.pkl -c config.yaml -model vctk_model.ckpt -s eg_wavs/p255_001.wav -t eg_wavs/p240_001.wav -o output_wavs/test4.wav -sr 24000
 if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument('-source', '-s', help='source wav path')
