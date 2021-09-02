@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 import os
 from argparse import ArgumentParser
-from OneShot.show_mel import plot_data
+from show_mel import plot_data
 from OneShot.inference import OneShotInferencer
 from Waveglow.inference import WaveglowInferencer
 import time
