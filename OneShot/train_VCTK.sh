@@ -5,5 +5,5 @@ python3 main.py \
 	-train_index_file train_samples_128.json \
 	-store_model_path models/vctk_22kHz_dropout/vctk_22_dropout \
 	-t vctk_22_dropout \
-	-iters 300000 \
+	-iters 250000 \
 	-summary_step 500

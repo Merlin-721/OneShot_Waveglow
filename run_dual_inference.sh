@@ -1,7 +1,7 @@
 python dual_inference.py \
 	-source=/home/merlin/OneDrive/modules/individualProject/voiceChanger/Evaluation/Eval_Dataset_Reduced/Men \
 	-target=/home/merlin/OneDrive/modules/individualProject/voiceChanger/Evaluation/Eval_Dataset_Reduced/Man_target/ \
-	-output_dir=output_wavs/colab_v2/ \
+	-output_dir=output_wavs/ \
 	-attr=OneShot/models/vctk_colab/VCTK_attr.pkl \
 	-oneshot_conf=OneShot/models/vctk_colab/.config.yaml \
 	-oneshot_model=OneShot/models/vctk_22_kl_1_full_200k.ckpt \
