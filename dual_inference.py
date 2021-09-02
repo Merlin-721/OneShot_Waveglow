@@ -84,9 +84,9 @@ if __name__ == '__main__':
 			mel,_ = oneshot_inferencer.inference_from_path(data_config, source, target)
 
 			print("Running Waveglow")
-			name = f"{source.stem}_{target.stem}"	
-			out_path = Path(args.output_dir,speaker,source.stem+"_"+target.stem+".wav")	
-			waveglow_inferencer.inference(mel.T, name, plot=True)
+			name = f"{source.stem}_{target.stem}.wav"	
+			out_path = Path(args.output_dir,speaker,name)	
+			waveglow_inferencer.inference(mel.T, out_path)
 	end = time.time()
 	ET = end - start
 	print(f"\nTotal time for {i+1} speakers and {utt_count} utterances: {ET}")
