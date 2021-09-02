@@ -1,6 +1,6 @@
 python dual_inference.py \
-	-source=/home/merlin/OneDrive/modules/individualProject/voiceChanger/Evaluation/Eval_Dataset_Reduced/Men \
-	-target=/home/merlin/OneDrive/modules/individualProject/voiceChanger/Evaluation/Eval_Dataset_Reduced/Man_target/ \
+	-source=input_wavs/sources/
+	-target=input_wavs/target/target.wav
 	-output_dir=output_wavs/ \
 	-attr=OneShot/models/vctk_colab/VCTK_attr.pkl \
 	-oneshot_conf=OneShot/models/vctk_colab/.config.yaml \
@@ -8,6 +8,5 @@ python dual_inference.py \
 	-sample_rate=22050 \
 	-data_conf=Waveglow/config.json \
 	-waveglow_path=Waveglow/models/waveglow_256channels_universal_v5.pt \
-	-sigma=0.6\
-	--is_fp16 \
+	-sigma=1\
 	-denoiser_strength=0.1
