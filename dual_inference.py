@@ -28,7 +28,6 @@ if __name__ == '__main__':
 	parser.add_argument('-source', '-s', help='source wav path')
 	parser.add_argument('-target', '-t', help='target wav path')
 	parser.add_argument('-output_dir', '-o', help='output wav path')
-	parser.add_argument('-output_name', help='name of output file')
 
 	# OneShot
 	parser.add_argument('-attr', '-a', help='data mean & std attr file path')
@@ -85,7 +84,8 @@ if __name__ == '__main__':
 			mel,_ = oneshot_inferencer.inference_from_path(data_config, source, target)
 
 			print("Running Waveglow")
-			name = f"{speaker}/{source.stem}_{target.stem}"	
+			name = f"{source.stem}_{target.stem}"	
+			out_path = Path(args.output_dir,speaker,source.stem+"_"+target.stem+".wav")	
 			waveglow_inferencer.inference(mel.T, name, plot=True)
 	end = time.time()
 	ET = end - start
