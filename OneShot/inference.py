@@ -12,13 +12,15 @@ from show_mel import plot_data
 import time
 
 class OneShotInferencer(object):
-    def __init__(self, config, args):
+    def __init__(self, config, args, verbose=True):
         # config store the value of hyperparameters, turn to attr by AttrDict
         self.config = config
-        print(config)
         # args store other information
         self.args = args
-        print(self.args)
+        if verbose:
+            print(self.args)
+            print(config)
+            print(self.model)
 
         # init the model with config
         self.build_model()
@@ -37,7 +39,6 @@ class OneShotInferencer(object):
     def build_model(self): 
         # create model, discriminator, optimizers
         self.model = cc(AE(self.config))
-        print(self.model)
         self.model.eval()
         return
 
@@ -68,8 +69,9 @@ class OneShotInferencer(object):
         return ret
 
     def remove_noise(self,mel,tar_mel, strength=0.2, mode='zeros'):
+        minval = np.min(mel)
         if mode == 'blank':
-            denoise_mel = torch.full(mel.shape, -12.0, dtype=torch.float32).cuda()
+            denoise_mel = torch.full(mel.shape, minval, dtype=torch.float32).cuda()
             # denoise_mel = torch.zeros(mel.shape).cuda()
         elif mode == 'rand':
             denoise_mel = torch.randn(mel.shape).cuda()
@@ -85,20 +87,22 @@ class OneShotInferencer(object):
         print(f"Writing mel to {output_path}")
         torch.save(mel_data,output_path)
 
-    def inference_from_path(self, waveglow_config, source, target):
+    def inference_from_path(self, waveglow_config, source, target, plot=False):
         MelProcessor = Mel2Samp(**waveglow_config)
         src_audio, _ = load_wav_to_torch(source)
         tar_audio, _ = load_wav_to_torch(target)
-        src_mel = np.array(MelProcessor.get_mel(src_audio).T)
-        tar_mel = np.array(MelProcessor.get_mel(tar_audio).T)
+        src_mel = torch.from_numpy(np.array(MelProcessor.get_mel(src_audio).T)).cuda()
+        tar_mel = torch.from_numpy(np.array(MelProcessor.get_mel(tar_audio).T)).cuda()
+        if plot:
+            plot_data(src_mel,save_loc=f"Presentation_Mels/{source.stem}_SourceMel.png",show=False)
+            plot_data(tar_mel,save_loc=f"Presentation_Mels/{target.stem}_TargetMel.png",show=False)
 
-        src_mel = torch.from_numpy(self.normalize(src_mel)).cuda()
-        tar_mel = torch.from_numpy(self.normalize(tar_mel)).cuda()
         start_time = time.time()
         conv_mel = self.inference_one_utterance(src_mel, tar_mel)
         duration = time.time() - start_time
         conv_mel = self.remove_noise(conv_mel, tar_mel, strength=0.1, mode='blank')
-        conv_mel = self.denormalize(conv_mel)
+        if plot:
+            plot_data(conv_mel,save_loc=f"Presentation_Mels/{source.stem}_{target.stem}_ConvertedMel.png",show=False)
         return conv_mel, duration
         
 if __name__ == '__main__':
