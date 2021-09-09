@@ -1,6 +1,6 @@
-python dual_inference.py \
-	-source=input_wavs/sources/
-	-target=input_wavs/target/target.wav
+python -W ignore dual_inference.py \
+	-source=input_wavs/p231/p231_003.wav \
+	-target=input_wavs/p241/p241_008.wav \
 	-output_dir=output_wavs/ \
 	-attr=OneShot/models/vctk_colab/VCTK_attr.pkl \
 	-oneshot_conf=OneShot/models/vctk_colab/.config.yaml \
@@ -9,4 +9,4 @@ python dual_inference.py \
 	-data_conf=Waveglow/config.json \
 	-waveglow_path=Waveglow/models/waveglow_256channels_universal_v5.pt \
 	-sigma=1\
-	-denoiser_strength=0.1
+	-denoiser_strength=0
