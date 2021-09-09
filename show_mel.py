@@ -3,13 +3,23 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize
 import sys
 
-def plot_data(data, title=None):
+def plot_data(data, title=None, norm=False, save_loc=None, show=True):
+	if type(data) == torch.Tensor:
+		data = data.cpu().numpy()
 	fig, axes = plt.subplots(1,1)
-	axes.imshow(data.T, aspect='auto', origin='lower', 
-		interpolation='none', norm=Normalize(-18,2))
+
+	if norm:
+		axes.imshow(data.T, aspect='equal', origin='lower', 
+			interpolation='none', norm=Normalize(-12,2))
+	else:
+		axes.imshow(data.T, aspect='equal', origin='lower') #, 
+
 	if title is not None:
 		plt.title(title)
-	plt.show()
+	if save_loc:
+		plt.savefig(save_loc, dpi=300)
+	if show:
+		plt.show()
 
 	
 if __name__ == '__main__':
