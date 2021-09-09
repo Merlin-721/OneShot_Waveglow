@@ -16,3 +16,5 @@ Speed_Test_figs/
 Speed_Test_Data/
 eval_inference.py
 OneShot/spk2gen.pkl
+
+Presentation_*
