@@ -14,6 +14,7 @@ Line-by-line changes are contained in the Differences directory.
 I verify that I am the sole author of the programmes contained in
 this archive, except where explicitly stated to the contrary.
 Merlin Lindsay, 02.09.2021
+
 ## To Run Conversion
 In terminal type:
 
@@ -36,7 +37,6 @@ Alternatively:
 		-denoiser_strength=0.1
 
 
-<!-- WaveGlow -->
 ### Dependencies 
 * numpy
 * torch==1.0
