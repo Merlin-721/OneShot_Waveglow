@@ -2,6 +2,7 @@ import yaml
 import json
 from pathlib import Path
 import os
+import torch
 from argparse import ArgumentParser
 from OneShot.inference import OneShotInferencer
 from Waveglow.inference import WaveglowInferencer
@@ -38,26 +39,30 @@ if __name__ == '__main__':
 	if not os.path.exists(target):
 		raise Exception(f"Target file {target} does not exist")
 
-	oneshot_inferencer = OneShotInferencer(config=oneshot_conf, args=args, verbose=False)
-	waveglow_inferencer = WaveglowInferencer(args)
-
 	with open(args.data_conf) as f:
 		data_config = f.read()
 	data_config = json.loads(data_config)["data_config"]
 
-	source = Path("wav_tmp/input.wav")
+	oneshot_inferencer = OneShotInferencer(config=oneshot_conf, args=args, 
+									waveglow_config=data_config, verbose=False)
+	waveglow_inferencer = WaveglowInferencer(args)
+
+
+	# source = Path("wav_tmp/input.wav")
 	while True: 
 		while True:
 			try:
-				sleep(2)
 				print("Waiting...")
+				sleep(2)
 			except KeyboardInterrupt:
 				break
-		record_audio(source, args.sample_rate)
-		mel,_ = oneshot_inferencer.inference_from_path(data_config, source, target)
+		source_audio = torch.tensor(record_audio(args.sample_rate)).squeeze(1)
+		# start_skip = int(args.sample_rate * 0.2)
+		# source_audio = source_audio[start_skip:]
+		mel,_ = oneshot_inferencer.inference_from_audio(source_audio, target, plot=False)
 
 		audio = waveglow_inferencer.inference(mel.T, None, save_wav=False)
 		sd.play(audio, args.sample_rate)
 		sd.wait()
 
-		os.remove(source)
+		# os.remove(source)
