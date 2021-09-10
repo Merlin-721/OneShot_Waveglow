@@ -12,7 +12,7 @@ from show_mel import plot_data
 import time
 
 class OneShotInferencer(object):
-    def __init__(self, config, args, verbose=True):
+    def __init__(self, config, args, waveglow_config, verbose=True):
         # config store the value of hyperparameters, turn to attr by AttrDict
         self.config = config
         # args store other information
@@ -23,6 +23,7 @@ class OneShotInferencer(object):
             print(self.model)
 
         # init the model with config
+        self.MelProcessor = Mel2Samp(**waveglow_config)
         self.build_model()
 
         # load model
@@ -87,44 +88,34 @@ class OneShotInferencer(object):
         print(f"Writing mel to {output_path}")
         torch.save(mel_data,output_path)
 
-    def inference_from_path(self, waveglow_config, source, target, plot=False):
-        MelProcessor = Mel2Samp(**waveglow_config)
-        src_audio, _ = load_wav_to_torch(source)
-        tar_audio, _ = load_wav_to_torch(target)
-        src_mel = torch.from_numpy(np.array(MelProcessor.get_mel(src_audio).T)).cuda()
-        tar_mel = torch.from_numpy(np.array(MelProcessor.get_mel(tar_audio).T)).cuda()
+    def inference(self, src_audio, tar_audio, plot=False):
+        src_mel = torch.from_numpy(np.array(self.MelProcessor.get_mel(src_audio).T)).cuda()
+        tar_mel = torch.from_numpy(np.array(self.MelProcessor.get_mel(tar_audio).T)).cuda()
         if plot:
-            plot_data(src_mel,save_loc=f"Presentation_Mels/{source.stem}_SourceMel.png",show=False)
-            plot_data(tar_mel,save_loc=f"Presentation_Mels/{target.stem}_TargetMel.png",show=False)
+            plot_data(src_mel,save_loc=f"Presentation_Mels/SourceMel.png",show=False)
+            plot_data(tar_mel,save_loc=f"Presentation_Mels/TargetMel.png",show=False)
 
         start_time = time.time()
         conv_mel = self.inference_one_utterance(src_mel, tar_mel)
         duration = time.time() - start_time
         conv_mel = self.remove_noise(conv_mel, tar_mel, strength=0.1, mode='blank')
         if plot:
-            plot_data(conv_mel,save_loc=f"Presentation_Mels/{source.stem}_{target.stem}_ConvertedMel.png",show=False)
+            plot_data(conv_mel,save_loc=f"Presentation_Mels/ConvertedMel.png",show=False)
+        return conv_mel, duration
+
+    def inference_from_audio(self, src_audio, target, plot=False):
+        """
+        Source audio is array
+        Target is path
+        """
+        tar_audio,_ = load_wav_to_torch(target)
+        conv_mel, duration = self.inference(src_audio, tar_audio, plot=plot)
         return conv_mel, duration
         
-if __name__ == '__main__':
-    parser = ArgumentParser()
-    parser.add_argument('-source', '-s', help='source wav path')
-    parser.add_argument('-target', '-t', help='target wav path')
-    parser.add_argument('-output', '-o', help='output wav path')
-    parser.add_argument('-attr', '-a', help='attr file path')
-    parser.add_argument('-oneshot_conf', '-c', help='config file path')
-    parser.add_argument('-oneshot_model', '-m', help='model path')
-    parser.add_argument('-sample_rate', '-sr', help='sample rate', default=22050, type=int)
-    parser.add_argument('-data_config', '-w', help='path to config matching waveglow model')
-    args = parser.parse_args()
-    # load config file 
-    with open(args.oneshot_conf) as f:
-        oneshot_conf = yaml.load(f)
+    def inference_from_path(self, source, target, plot=False):
+        src_audio,_ = load_wav_to_torch(source)
+        tar_audio,_ = load_wav_to_torch(target)
+        conv_mel, duration = self.inference(src_audio, tar_audio, plot=plot)
+        return conv_mel, duration
 
-    with open(args.data_config_path) as f:
-        waveglow_config = f.read()
 
-    data_config = json.loads(waveglow_config)["data_config"]
-    data_config["training_files"] = "preprocess/data/VCTK/22kHz_mels/train_files.txt"
-
-    inferencer = OneShotInferencer(config=oneshot_conf, args=args)
-    inferencer.inference_from_path(data_config,args.source,args.target)
