@@ -5,9 +5,10 @@ The soundfile module (https://PySoundFile.readthedocs.io/) has to be installed!
 import queue
 import sys
 
+import numpy as np
 import sounddevice as sd
 import soundfile as sf
-import numpy  # Make sure NumPy is loaded before it is used in the callback
+import numpy
 assert numpy  # avoid "imported but unused" message (W0611)
 
 
@@ -19,22 +20,19 @@ def callback(indata, frames, time, status):
         print(status, file=sys.stderr)
     q.put(indata.copy())
 
-def record_audio(filename, samplerate=22050, channels=1, device=None, subtype=None):
-	
+def record_audio(samplerate=22050, channels=1, device=None, subtype=None):
+	audio = []
 	try:
-		# Make sure the file is opened before recording anything:
-		with sf.SoundFile(filename, mode='x', samplerate=samplerate,
-									channels=channels, subtype=subtype) as file:
-			with sd.InputStream(samplerate=samplerate, device=device,
-								channels=channels, callback=callback):
-				print('=' * 80)
-				print('press Ctrl+C to stop the recording')
-				print('=' * 80)
-				while True:
-					file.write(q.get())
+		with sd.InputStream(samplerate=samplerate, device=device, dtype=np.int16,
+							channels=channels, callback=callback):
+			print('=' * 80)
+			print('press Ctrl+C to stop the recording')
+			print('=' * 80)
+			while True:
+				audio.extend(q.get())
+				# file.write(q.get())
 	except KeyboardInterrupt:
-		print('\nRecording finished: ' + repr(filename))
-		# parser.exit(0)
+		print('\nRecording finished')
+		return audio
 	except Exception as e:
 		print('Error: ' + repr(e))
-		# parser.exit(type(e).__name__ + ': ' + str(e))
