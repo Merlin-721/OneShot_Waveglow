@@ -59,15 +59,6 @@ class OneShotInferencer(object):
         dec = dec.detach().cpu().numpy()
         return dec
 
-    def denormalize(self, x):
-        m, s = self.attr['mean'], self.attr['std']
-        ret = x * s + m
-        return ret
-
-    def normalize(self, x):
-        m, s = self.attr['mean'], self.attr['std']
-        ret = (x - m) / s
-        return ret
 
     def remove_noise(self,mel,tar_mel, strength=0.2, mode='zeros'):
         minval = np.min(mel)
@@ -92,15 +83,15 @@ class OneShotInferencer(object):
         src_mel = torch.from_numpy(np.array(self.MelProcessor.get_mel(src_audio).T)).cuda()
         tar_mel = torch.from_numpy(np.array(self.MelProcessor.get_mel(tar_audio).T)).cuda()
         if plot:
-            plot_data(src_mel,save_loc=f"Presentation_Mels/SourceMel.png",show=False)
-            plot_data(tar_mel,save_loc=f"Presentation_Mels/TargetMel.png",show=False)
+            plot_data(src_mel,save_loc=f"output_mels/SourceMel.png",show=False)
+            plot_data(tar_mel,save_loc=f"output_mels/TargetMel.png",show=False)
 
         start_time = time.time()
         conv_mel = self.inference_one_utterance(src_mel, tar_mel)
         duration = time.time() - start_time
         conv_mel = self.remove_noise(conv_mel, tar_mel, strength=0.1, mode='blank')
         if plot:
-            plot_data(conv_mel,save_loc=f"Presentation_Mels/ConvertedMel.png",show=False)
+            plot_data(conv_mel,save_loc=f"output_mels/ConvertedMel.png",show=False)
         return conv_mel, duration
 
     def inference_from_audio(self, src_audio, target, plot=False):
@@ -108,6 +99,7 @@ class OneShotInferencer(object):
         Source audio is array
         Target is path
         """
+        src_audio = torch.tensor(src_audio)
         tar_audio,_ = load_wav_to_torch(target)
         conv_mel, duration = self.inference(src_audio, tar_audio, plot=plot)
         return conv_mel, duration
