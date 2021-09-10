@@ -63,13 +63,14 @@ if __name__ == '__main__':
 	if not os.path.exists(args.output_dir):
 		os.makedirs(args.output_dir)
 
-
-	oneshot_inferencer = OneShotInferencer(config=oneshot_conf, args=args, verbose=False)
-	waveglow_inferencer = WaveglowInferencer(args)
-
 	with open(args.data_conf) as f:
 		data_config = f.read()
 	data_config = json.loads(data_config)["data_config"]
+
+	oneshot_inferencer = OneShotInferencer(config=oneshot_conf, args=args, 
+											waveglow_config=data_config, verbose=False)
+	waveglow_inferencer = WaveglowInferencer(args)
+
 
 	utt_count = 0
 	for i, speaker in enumerate(np.unique(speakers)):	
@@ -81,7 +82,7 @@ if __name__ == '__main__':
 		for source in np.array(wav_fpaths)[utts]:
 			utt_count += 1
 			print(f"\nConverting {source.name} to {target.name}")
-			mel,os_duration = oneshot_inferencer.inference_from_path(data_config, source, target, plot=args.plot)
+			mel,os_duration = oneshot_inferencer.inference_from_path(source, target, plot=args.plot)
 			print(f"OneShot ran in {os_duration:.3f} seconds")
 
 			start = time.time()
