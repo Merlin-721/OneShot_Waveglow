@@ -60,8 +60,10 @@ class OneShotInferencer(object):
         return dec
 
 
-    def remove_noise(self,mel,tar_mel, strength=0.2, mode='zeros'):
+    def remove_noise(self,mel,tar_mel, strength=0.2, mode='blank'):
+        maxval = np.max(mel)
         minval = np.min(mel)
+        print(f"Mel Max value: {maxval}, Min value: {minval}")
         if mode == 'blank':
             denoise_mel = torch.full(mel.shape, minval, dtype=torch.float32).cuda()
             # denoise_mel = torch.zeros(mel.shape).cuda()
@@ -71,6 +73,7 @@ class OneShotInferencer(object):
             raise Exception("Denoise mode must be blank or rand")
         noise_mel = self.inference_one_utterance(denoise_mel, tar_mel)
         noise_mel = np.mean(noise_mel,axis=0,keepdims=True)
+        # plot_data(noise_mel)
 
         noise_removed = mel - (noise_mel * strength)
         return noise_removed
@@ -89,7 +92,7 @@ class OneShotInferencer(object):
         start_time = time.time()
         conv_mel = self.inference_one_utterance(src_mel, tar_mel)
         duration = time.time() - start_time
-        conv_mel = self.remove_noise(conv_mel, tar_mel, strength=0.1, mode='blank')
+        conv_mel = self.remove_noise(conv_mel, tar_mel, strength=0.2, mode='blank')
         if plot:
             plot_data(conv_mel,save_loc=f"output_mels/ConvertedMel.png",show=False)
         return conv_mel, duration

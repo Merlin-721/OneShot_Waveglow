@@ -9,6 +9,8 @@ from Waveglow.inference import WaveglowInferencer
 import sounddevice as sd
 from record_anylength import record_audio
 from time import sleep
+import numpy as np
+from Waveglow.mel2samp import MAX_WAV_VALUE
 
 if __name__ == '__main__':
 	parser = ArgumentParser()
@@ -57,12 +59,15 @@ if __name__ == '__main__':
 			except KeyboardInterrupt:
 				break
 		source_audio = torch.tensor(record_audio(args.sample_rate)).squeeze(1)
-		# start_skip = int(args.sample_rate * 0.2)
-		# source_audio = source_audio[start_skip:]
+		start_skip = int(args.sample_rate * 1)
+		source_audio = source_audio[start_skip:]
 		mel,_ = oneshot_inferencer.inference_from_audio(source_audio, target, plot=False)
 
 		audio = waveglow_inferencer.inference(mel.T, None, save_wav=False)
+		# val_clip = MAX_WAV_VALUE * 0.85
+		# audio = audio / MAX_WAV_VALUE * val_clip
+
+		print(f"Audio max value: {np.max(audio)}, min: {np.min(audio)}")
 		sd.play(audio, args.sample_rate)
 		sd.wait()
 
-		# os.remove(source)
