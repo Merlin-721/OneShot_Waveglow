@@ -1,39 +1,29 @@
 import torch
 import numpy as np
-import sys
-import os 
-import torch.nn as nn
 import torch.nn.functional as F
 import yaml
 import pickle
 from .model import AE
 from .utils import *
-from functools import reduce
 import json
-from collections import defaultdict
-from torch.utils.data import Dataset
-from torch.utils.data import TensorDataset
-from torch.utils.data import DataLoader
-from argparse import ArgumentParser, Namespace
-from scipy.io.wavfile import write
-import random
-# from preprocess.tacotron.utils import get_spectrograms
-from tacotron2 import audio_processing
+from argparse import ArgumentParser
 from Waveglow.mel2samp import load_wav_to_torch, Mel2Samp
-import librosa 
-from .show_mel import plot_data
+from show_mel import plot_data
 import time
 
 class OneShotInferencer(object):
-    def __init__(self, config, args):
+    def __init__(self, config, args, waveglow_config, verbose=True):
         # config store the value of hyperparameters, turn to attr by AttrDict
         self.config = config
-        print(config)
         # args store other information
         self.args = args
-        print(self.args)
+        if verbose:
+            print(self.args)
+            print(config)
+            print(self.model)
 
         # init the model with config
+        self.MelProcessor = Mel2Samp(**waveglow_config)
         self.build_model()
 
         # load model
@@ -50,7 +40,6 @@ class OneShotInferencer(object):
     def build_model(self): 
         # create model, discriminator, optimizers
         self.model = cc(AE(self.config))
-        print(self.model)
         self.model.eval()
         return
 
@@ -68,27 +57,15 @@ class OneShotInferencer(object):
         dec = self.model.inference(x, x_cond)
         dec = dec.transpose(1, 2).squeeze(0)
         dec = dec.detach().cpu().numpy()
-        # this is where to integrate waveglow (ie replace griffin lim)
-        # wav_data = melspectrogram2wav(dec)
         return dec
 
-    def denormalize(self, x):
-        m, s = self.attr['mean'], self.attr['std']
-        ret = x * s + m
-        return ret
 
-    def normalize(self, x):
-        m, s = self.attr['mean'], self.attr['std']
-        ret = (x - m) / s
-        return ret
-
-    # def write_wav_to_file(self, wav_data, output_path):
-    #     write(output_path, rate=self.args.sample_rate, data=wav_data)
-    #     return
-
-    def remove_noise(self,mel,tar_mel, strength=0.2, mode='zeros'):
+    def remove_noise(self,mel,tar_mel, strength=0.2, mode='blank'):
+        maxval = np.max(mel)
+        minval = np.min(mel)
+        print(f"Mel Max value: {maxval}, Min value: {minval}")
         if mode == 'blank':
-            denoise_mel = torch.full(mel.shape, -12.0, dtype=torch.float32).cuda()
+            denoise_mel = torch.full(mel.shape, minval, dtype=torch.float32).cuda()
             # denoise_mel = torch.zeros(mel.shape).cuda()
         elif mode == 'rand':
             denoise_mel = torch.randn(mel.shape).cuda()
@@ -96,6 +73,7 @@ class OneShotInferencer(object):
             raise Exception("Denoise mode must be blank or rand")
         noise_mel = self.inference_one_utterance(denoise_mel, tar_mel)
         noise_mel = np.mean(noise_mel,axis=0,keepdims=True)
+        # plot_data(noise_mel)
 
         noise_removed = mel - (noise_mel * strength)
         return noise_removed
@@ -104,53 +82,35 @@ class OneShotInferencer(object):
         print(f"Writing mel to {output_path}")
         torch.save(mel_data,output_path)
 
-    def inference_from_path(self, waveglow_config, source, target):
-        MelProcessor = Mel2Samp(**waveglow_config)
-        src_audio, _ = load_wav_to_torch(source)
-        tar_audio, _ = load_wav_to_torch(target)
-        src_mel = np.array(MelProcessor.get_mel(src_audio).T)
-        tar_mel = np.array(MelProcessor.get_mel(tar_audio).T)
+    def inference(self, src_audio, tar_audio, plot=False):
+        src_mel = torch.from_numpy(np.array(self.MelProcessor.get_mel(src_audio).T)).cuda()
+        tar_mel = torch.from_numpy(np.array(self.MelProcessor.get_mel(tar_audio).T)).cuda()
+        if plot:
+            plot_data(src_mel,save_loc=f"output_mels/SourceMel.png",show=False)
+            plot_data(tar_mel,save_loc=f"output_mels/TargetMel.png",show=False)
 
-        # plot_data(src_mel, "Source mel")
-        # plot_data(tar_mel, "Target mel")
-
-        src_mel = torch.from_numpy(self.normalize(src_mel)).cuda()
-        tar_mel = torch.from_numpy(self.normalize(tar_mel)).cuda()
-        # src_mel = torch.from_numpy(src_mel).cuda()
-        # tar_mel = torch.from_numpy(tar_mel).cuda()
-        # plot_data(np.array(src_mel.cpu()), "Source mel norm")
-        # plot_data(np.array(tar_mel.cpu()), "Target mel norm")
         start_time = time.time()
         conv_mel = self.inference_one_utterance(src_mel, tar_mel)
         duration = time.time() - start_time
-        conv_mel = self.remove_noise(conv_mel, tar_mel, strength=0.1, mode='blank')
-        conv_mel = self.denormalize(conv_mel)
-        # plot_data(conv_mel, "OS post denoise")
-        # self.write_wav_to_file(conv_wav, self.args.output)
-        # self.write_mel_to_file(conv_mel,self.args.output)
+        conv_mel = self.remove_noise(conv_mel, tar_mel, strength=0.2, mode='blank')
+        if plot:
+            plot_data(conv_mel,save_loc=f"output_mels/ConvertedMel.png",show=False)
+        return conv_mel, duration
+
+    def inference_from_audio(self, src_audio, target, plot=False):
+        """
+        Source audio is array
+        Target is path
+        """
+        src_audio = torch.tensor(src_audio)
+        tar_audio,_ = load_wav_to_torch(target)
+        conv_mel, duration = self.inference(src_audio, tar_audio, plot=plot)
         return conv_mel, duration
         
-# python inference.py -a attr.pkl -c config.yaml -model vctk_model.ckpt -s eg_wavs/p255_001.wav -t eg_wavs/p240_001.wav -o output_wavs/test4.wav -sr 24000
-if __name__ == '__main__':
-    parser = ArgumentParser()
-    parser.add_argument('-source', '-s', help='source wav path')
-    parser.add_argument('-target', '-t', help='target wav path')
-    parser.add_argument('-output', '-o', help='output wav path')
-    parser.add_argument('-attr', '-a', help='attr file path')
-    parser.add_argument('-oneshot_conf', '-c', help='config file path')
-    parser.add_argument('-oneshot_model', '-m', help='model path')
-    parser.add_argument('-sample_rate', '-sr', help='sample rate', default=22050, type=int)
-    parser.add_argument('-data_config', '-w', help='path to config matching waveglow model')
-    args = parser.parse_args()
-    # load config file 
-    with open(args.oneshot_conf) as f:
-        oneshot_conf = yaml.load(f)
+    def inference_from_path(self, source, target, plot=False):
+        src_audio,_ = load_wav_to_torch(source)
+        tar_audio,_ = load_wav_to_torch(target)
+        conv_mel, duration = self.inference(src_audio, tar_audio, plot=plot)
+        return conv_mel, duration
 
-    with open(args.data_config_path) as f:
-        waveglow_config = f.read()
 
-    data_config = json.loads(waveglow_config)["data_config"]
-    data_config["training_files"] = "preprocess/data/VCTK/22kHz_mels/train_files.txt"
-
-    inferencer = OneShotInferencer(config=oneshot_conf, args=args)
-    inferencer.inference_from_path(data_config,args.source,args.target)

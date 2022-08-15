@@ -29,7 +29,7 @@ from scipy.io.wavfile import write
 import torch
 from .mel2samp import files_to_list, MAX_WAV_VALUE
 from .denoiser import Denoiser
-from OneShot.show_mel import plot_data
+from show_mel import plot_data
 
 class WaveglowInferencer(object):
     def __init__(self, args):

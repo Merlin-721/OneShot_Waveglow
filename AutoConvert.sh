@@ -1,7 +1,6 @@
-python -W ignore dual_inference.py \
-	-source=input_wavs/p231/p231_003.wav \
-	-target=input_wavs/p241/p241_008.wav \
-	-output_dir=output_wavs/ \
+
+python -W ignore AutoConvert.py \
+	-target=Presentation_Target/p269_023.wav \
 	-attr=OneShot/models/vctk_colab/VCTK_attr.pkl \
 	-oneshot_conf=OneShot/models/vctk_colab/.config.yaml \
 	-oneshot_model=OneShot/models/vctk_22_kl_1_full_200k.ckpt \
