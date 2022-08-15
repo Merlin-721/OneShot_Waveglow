@@ -15,3 +15,5 @@ run_speed_test.sh
 Speed_Test_figs/
 Speed_Test_Data/
 eval_inference.py
+
+Presentation_*/
